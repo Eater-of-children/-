@@ -1,2 +1,110 @@
-print("churki huesosi")
-print("shutka ))))")
+import sys
+
+
+block_length = 2 #floating length, can be changed according to the dimension of the matrix
+Matrix_Key = [[15, 4], [11, 3]] #floating length, can be changed according to the "block_length"
+
+
+determinant = Matrix_Key[0][0] * Matrix_Key[1][1] - Matrix_Key[0][1]*Matrix_Key[1][0]
+if determinant != 1:
+    print("Error: Determinant != 1.")
+    sys.exit()
+
+
+inverse_Matrix_Key = [
+    [Matrix_Key[1][1], -Matrix_Key[0][1]],
+    [-Matrix_Key[1][0], Matrix_Key[0][0]]
+]
+
+
+alphabet = tuple("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+mode_switch = int(input("Choose the mode (1 - encode, 2 - decode): "))
+if mode_switch not in (1, 2):
+    print("Error: failed to access mode.")
+    sys.exit()
+crypt_message = input("Write the message to encode/decode: ")
+
+
+def indexation_input(message, result = []):
+    '''
+    returns the index codes of the given message
+    :type -> list:
+    :param -> message:
+    :return -> result:
+    '''
+    for symb in message:
+        if symb == symb.upper():
+            result += [1]
+        else:
+            result += [0]
+    return result
+
+
+indexation_massiv = indexation_input(crypt_message)
+crypt_message = crypt_message.upper()
+
+
+for symbol in crypt_message:
+    if symbol not in alphabet:
+        crypt_message = crypt_message.replace(symbol, '')
+
+
+counter = 0
+while len(crypt_message) % block_length != 0:
+    crypt_message = crypt_message + 'Z'
+
+
+
+def character_block(text, result = []):
+    '''
+    a function that returns an array consisting of blocks of the chosen length that make up the original message
+    :type -> list:
+    :param -> text:
+    :return -> result:
+    '''
+    for i in range(0, len(text), 2):
+        result += [text[i]+text[i + 1]]
+    return result
+
+
+def encryptDecrypt(message, matrix, sum = 0, final = ""):
+    '''
+    main function that combines subfunctions and returns a result string
+    :type -> string:
+    :param -> message, matrix:
+    :return -> result:
+    '''
+    for double in range(len(message)):
+        for string in range(block_length):
+            for column in range(block_length):
+                sum += matrix[string][column] * alphabet.index(message[double][column])
+            final += alphabet[(sum) % 26]
+            sum = 0
+    return final
+
+
+def indexation_output(massiv, message):
+    '''
+    returns a message according to an array of index-codes
+    :type -> list:
+    :param -> massiv, message:
+    :return -> result:
+    '''
+    result = ''
+    for i in range(len(massiv)):
+        if massiv[i] == 1:
+            result += message[i].upper()
+        else:
+            result += message[i].lower()
+    return result
+
+
+if mode_switch == 1:
+    result_message = encryptDecrypt(character_block(crypt_message), Matrix_Key)
+else:
+    result_message = encryptDecrypt(character_block(crypt_message), inverse_Matrix_Key)
+
+
+result_message_complete = indexation_output(indexation_massiv, result_message)
+
+print("Result:", result_message)
